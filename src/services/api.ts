@@ -5,31 +5,21 @@ type FetchOptions = {
   };
   url: string;
   method?: string;
-  body?: any;
 };
 
-export default async function fetchAPI({
-  body,
-  params = {},
-  url = '',
-  method = 'GET'
-}: FetchOptions) {
+export default async function fetchAPI({ params = {}, url = '', method = 'GET' }: FetchOptions) {
   const headers = {
     'Content-Type': 'application/json',
     Accept: 'application/json'
   };
   if (Object.keys(params).length > 0) {
-    url = `${url}?${Object.keys(params)
+    url = `${url}${Object.keys(params)
       .map((key) => `${key}${params[key]}`)
       .join('&')}`;
   }
-
-  body = JSON.stringify(body);
-
   return fetch(url, {
     method,
-    headers,
-    body
+    headers
   })
     .then((response) => response.json())
     .catch((error) => error);
