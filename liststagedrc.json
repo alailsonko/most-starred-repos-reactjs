@@ -1,5 +1,3 @@
 {
-  "src/**/*.{js,ts,jsx,tsx}": [
-    "yarn format"
-    ]
-  }
+  "src/**/*.{js,ts,jsx,tsx}": ["yarn format"]
+}
