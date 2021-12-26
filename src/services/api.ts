@@ -20,7 +20,7 @@ export default async function fetchAPI({
   };
   if (Object.keys(params).length > 0) {
     url = `${url}?${Object.keys(params)
-      .map((key) => `${key}=${params[key]}`)
+      .map((key) => `${key}${params[key]}`)
       .join('&')}`;
   }
 
