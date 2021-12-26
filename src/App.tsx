@@ -1,12 +1,8 @@
 import React from 'react';
+import RoutesApp from './routes';
 
 function App() {
-  return (
-    <div>
-      <p>hello hello hello</p>
-      hello
-    </div>
-  );
+  return <RoutesApp />;
 }
 
 export default App;
