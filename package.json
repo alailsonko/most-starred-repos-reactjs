@@ -26,6 +26,17 @@
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
     "prepare": "husky install"
   },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "yarn format"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn test"  
+    }
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -59,8 +70,5 @@
     "husky": ">=6",
     "lint-staged": ">=10",
     "prettier": "^2.5.1"
-  },
-  "lint-staged": {
-    "*.js": "eslint --cache --fix"
   }
 }
