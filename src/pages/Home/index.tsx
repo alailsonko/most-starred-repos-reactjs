@@ -8,7 +8,6 @@ const Home: React.FC = () => {
   return (
     <HomeContainer>
       <HomeWrapper>
-        <h1>Home</h1>
         <Center>
           <VStack direction="column">
             <Stack>
