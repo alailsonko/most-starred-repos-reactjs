@@ -127,7 +127,7 @@ const Home: React.FC = () => {
             <Tabs onChange={(index) => setTabIndex(index)} variant="enclosed">
               <TabList>
                 <Tab>All({repositories.length})</Tab>
-                <Tab>Starred</Tab>
+                <Tab>Starred({starredRepositories.length})</Tab>
               </TabList>
               <Stack
                 onScroll={(e) => {
@@ -208,27 +208,6 @@ const Home: React.FC = () => {
                     )}
                   </TabPanel>
                 </TabPanels>
-              </Stack>
-              <Stack>
-                <Checkbox
-                  onChange={async (e) => {
-                    if (e.target.checked) {
-                      setLoading(true);
-
-                      setRepositories((previousState) =>
-                        previousState.filter((item) => item.starred !== false)
-                      );
-                      setLoading(false);
-
-                      return;
-                    }
-                    setLoading(true);
-                    await repositoriesCallback().then(() => {
-                      setLoading(false);
-                    });
-                  }}>
-                  filter by Starred
-                </Checkbox>
               </Stack>
             </Tabs>
           </VStack>
