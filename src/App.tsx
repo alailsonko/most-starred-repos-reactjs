@@ -1,4 +1,3 @@
-import React, { Suspense } from 'react';
 import { ChakraProvider } from '@chakra-ui/react';
 
 import { RecoilRoot } from 'recoil';
@@ -8,9 +7,7 @@ function App() {
   return (
     <RecoilRoot>
       <ChakraProvider>
-        <Suspense fallback={<div>Loading...</div>}>
-          <RoutesApp />
-        </Suspense>
+        <RoutesApp />
       </ChakraProvider>
     </RecoilRoot>
   );
