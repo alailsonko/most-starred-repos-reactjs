@@ -1,15 +1,39 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Flex, Heading, Button, Badge, Text } from '@chakra-ui/react';
 import { IRepository } from '../../domain/models/repository';
+import { getLocalStorage } from '../../services/localStorage';
 
 type Props = {
   item: IRepository;
-  callback: Function;
+  callbackHandleUnstarRepo: Function;
+  callbackHandleStarRepo: Function;
+  isStarredRepo?: boolean;
 };
 
-const RepositoryCard: FC<Props> = ({ item, callback }) => {
+const RepositoryCard: FC<Props> = ({
+  isStarredRepo,
+  item,
+  callbackHandleUnstarRepo,
+  callbackHandleStarRepo
+}) => {
   const [isTruncated, setIsTruncated] = useState(true);
+  const [isStarred, setIsStarred] = useState(() => {
+    const repositoriesLocalStorage = getLocalStorage('repositories');
+    if ((repositoriesLocalStorage as IRepository[]).length > 0) {
+      return (repositoriesLocalStorage as IRepository[]).some((repo) => repo.id === item.id);
+    }
+    return false;
+  });
+  useEffect(() => {
+    setIsStarred(() => {
+      const repositoriesLocalStorage = getLocalStorage('repositories');
+      if ((repositoriesLocalStorage as IRepository[]).length > 0) {
+        return (repositoriesLocalStorage as IRepository[]).some((repo) => repo.id === item.id);
+      }
+      return false;
+    });
+  }, []);
 
   return (
     <Box
@@ -31,12 +55,25 @@ const RepositoryCard: FC<Props> = ({ item, callback }) => {
           {item.name}
         </Heading>
         <Button
-          onClick={() => callback(item)}
+          onClick={() => {
+            if (isStarred) {
+              callbackHandleUnstarRepo(item);
+              setIsStarred(false);
+            } else {
+              callbackHandleStarRepo(item);
+              setIsStarred(true);
+            }
+          }}
           position="relative"
           colorScheme="teal"
           variant="outline"
           size="lg">
-          <span>star</span>
+          {isStarredRepo ? (
+            <span>{isStarred ? 'unstar' : 'star'}</span>
+          ) : (
+            <span>{item.starred ? 'unstar' : 'star'}</span>
+          )}
+
           <div>
             <StarIcon
               position="absolute"
@@ -99,6 +136,10 @@ const RepositoryCard: FC<Props> = ({ item, callback }) => {
       </Flex>
     </Box>
   );
+};
+
+RepositoryCard.defaultProps = {
+  isStarredRepo: false
 };
 
 export default RepositoryCard;
