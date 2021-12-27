@@ -5,9 +5,10 @@ import { IRepository } from '../../domain/models/repository';
 
 type Props = {
   item: IRepository;
+  callback: Function;
 };
 
-const RepositoryCard: FC<Props> = ({ item }) => {
+const RepositoryCard: FC<Props> = ({ item, callback }) => {
   const [isTruncated, setIsTruncated] = useState(true);
 
   return (
@@ -29,7 +30,12 @@ const RepositoryCard: FC<Props> = ({ item }) => {
         <Heading fontSize="xl" color="black">
           {item.name}
         </Heading>
-        <Button position="relative" colorScheme="teal" variant="outline" size="lg">
+        <Button
+          onClick={() => callback(item)}
+          position="relative"
+          colorScheme="teal"
+          variant="outline"
+          size="lg">
           <span>star</span>
           <div>
             <StarIcon
