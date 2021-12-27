@@ -4,5 +4,5 @@ import { getRepositories } from '../index';
 
 test('Test getRepositories', async () => {
   const initialSnapshot = snapshot_UNSTABLE();
-  expect(await initialSnapshot.getPromise(getRepositories)).toHaveLength(30);
+  expect(await initialSnapshot.getPromise(getRepositories)).toHaveLength(5);
 });
