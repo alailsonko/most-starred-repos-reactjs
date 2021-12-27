@@ -14,8 +14,7 @@ import {
   TabList,
   Tab,
   TabPanels,
-  TabPanel,
-  Checkbox
+  TabPanel
 } from '@chakra-ui/react';
 import { HomeContainer, HomeWrapper } from './styles';
 import { getRepositories, pageAtom } from '../../usecases/getRepositories';
