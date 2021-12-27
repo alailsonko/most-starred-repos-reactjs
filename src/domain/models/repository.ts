@@ -4,4 +4,5 @@ export type IRepository = {
   link: string;
   description: string;
   stars: number;
+  owner: string;
 };
