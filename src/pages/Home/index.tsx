@@ -198,7 +198,7 @@ const Home: React.FC = () => {
                             />
                           )
                         )}
-                        {loadingItems && <Button>loading more items</Button>}
+                        {starredRepositories.length === 0 && <Button width="22vw">empty</Button>}
                       </>
                     ) : (
                       <Box padding="6" boxShadow="lg" bg="white">
