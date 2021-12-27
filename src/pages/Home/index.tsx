@@ -15,6 +15,7 @@ import { HomeContainer, HomeWrapper } from './styles';
 import { getRepositories, pageAtom } from '../../usecases/getRepositories';
 import RepositoryCard from '../../components/RepositoryCard';
 import { IRepository } from '../../domain/models/repository';
+import { getLocalStorage, setLocalStorage } from '../../services/localStorage';
 
 const Home: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -41,17 +42,29 @@ const Home: React.FC = () => {
       },
     []
   );
+
   useEffect(() => {
     setLoading(true);
     repositoriesCallback();
+    const localStorageRepositories = getLocalStorage('repositories');
+    if (!localStorageRepositories) {
+      setLocalStorage('repositories', []);
+    }
   }, []);
+
+  const handleStarRepo = (item: IRepository) => {
+    const localStorageRepositories = getLocalStorage('repositories');
+    const newRepositories = localStorageRepositories.concat(item);
+    setLocalStorage('repositories', newRepositories);
+  };
+
   return (
     <HomeContainer>
       <HomeWrapper>
         <Center>
           <VStack direction="column">
             <Stack>
-              <Heading>The most starred repositories</Heading>
+              <Heading>The most starred repositories({repositories.length})</Heading>
             </Stack>
             <Stack
               onScroll={(e) => {
@@ -64,8 +77,8 @@ const Home: React.FC = () => {
                   return;
                 }
                 if (e.currentTarget.scrollTop === 0) {
-                  setPageAtom(1);
-                  repositoriesCallback();
+                  setPageAtom(2);
+                  setRepositories(repositories.slice(0, 5));
                 }
               }}
               style={{
@@ -88,7 +101,7 @@ const Home: React.FC = () => {
               {!loading ? (
                 <>
                   {(repositories as unknown as IRepository[]).map((item: IRepository) => (
-                    <RepositoryCard key={item.id} item={item} />
+                    <RepositoryCard callback={handleStarRepo} key={item.id} item={item} />
                   ))}
                   {loadingItems && <Button>loading more items</Button>}
                 </>
