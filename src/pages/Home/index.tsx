@@ -133,7 +133,7 @@ const Home: React.FC = () => {
                 onScroll={(e) => {
                   if (tabIndex === 0) {
                     if (
-                      e.currentTarget.scrollTop + e.currentTarget.offsetHeight + 2 >=
+                      e.currentTarget.scrollTop + e.currentTarget.offsetHeight >=
                       e.currentTarget.scrollHeight
                     ) {
                       setPageAtom(pageValueAtom + 1);

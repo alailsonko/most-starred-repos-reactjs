@@ -14,7 +14,7 @@ export const getRepositories = selector({
     return fetchAPI({
       url: endpoints.searchRepositories,
       params: {
-        created: `:>2021-12-12`,
+        created: `:>2021-12-20`,
         sort: '=stars',
         order: '=desc',
         per_page: '=5',
