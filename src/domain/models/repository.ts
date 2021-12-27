@@ -5,4 +5,5 @@ export type IRepository = {
   description: string;
   stars: number;
   owner: string;
+  language: string;
 };
