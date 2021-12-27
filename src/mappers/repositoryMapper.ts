@@ -6,6 +6,7 @@ export default function repositoryMapper(item: any): IRepository {
     description: item.description as string,
     link: item.html_url as string,
     name: item.name as string,
-    stars: item.stargazers_count as number
+    stars: item.stargazers_count as number,
+    owner: item.owner.login as string
   };
 }

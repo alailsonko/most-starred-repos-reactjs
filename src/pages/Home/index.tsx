@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-
+import { useRecoilValue } from 'recoil';
 import { Badge, Box, Button, Center, Flex, Heading, VStack, Stack, Text } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import { HomeContainer, HomeWrapper } from './styles';
+import { getRepositories } from '../../usecases/getRepositories';
 
 const Home: React.FC = () => {
   const [isTruncated, setIsTruncated] = useState(true);
+  const repositories = useRecoilValue(getRepositories);
+  console.log(repositories);
   return (
     <HomeContainer>
       <HomeWrapper>
