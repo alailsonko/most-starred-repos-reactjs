@@ -14,7 +14,8 @@ import {
   TabList,
   Tab,
   TabPanels,
-  TabPanel
+  TabPanel,
+  Checkbox
 } from '@chakra-ui/react';
 import { HomeContainer, HomeWrapper } from './styles';
 import { getRepositories, pageAtom } from '../../usecases/getRepositories';
@@ -42,7 +43,7 @@ const Home: React.FC = () => {
               return previousState;
             }
 
-            return previousState.concat(res as IRepository[]);
+            return previousState.concat(res as IRepository[]).sort((a, b) => b.stars - a.stars);
           });
           setLoading(false);
           setLoadingItems(false);
@@ -139,8 +140,8 @@ const Home: React.FC = () => {
                       return;
                     }
                     if (e.currentTarget.scrollTop === 0) {
-                      setPageAtom(2);
-                      setRepositories(repositories.slice(0, 5));
+                      setPageAtom(0);
+                      repositoriesCallback();
                     }
                   }
                 }}
@@ -206,6 +207,22 @@ const Home: React.FC = () => {
                     )}
                   </TabPanel>
                 </TabPanels>
+              </Stack>
+              <Stack>
+                <Checkbox
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setRepositories((previousState) =>
+                        previousState.filter((item) => item.starred !== false)
+                      );
+                      return;
+                    }
+                    setLoading(true);
+
+                    repositoriesCallback();
+                  }}>
+                  filter by Starred
+                </Checkbox>
               </Stack>
             </Tabs>
           </VStack>
