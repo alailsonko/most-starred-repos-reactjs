@@ -35,7 +35,8 @@ const Home: React.FC = () => {
               <Box
                 shadow="md"
                 _hover={{
-                  boxShadow: 'dark-lg'
+                  boxShadow: 'dark-lg',
+                  borderColor: 'green.500'
                 }}
                 borderWidth="1px"
                 bg="white"
