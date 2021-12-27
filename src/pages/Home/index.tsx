@@ -43,9 +43,8 @@ const Home: React.FC = () => {
               return previousState;
             }
 
-            return previousState.concat(res as IRepository[]).sort((a, b) => b.stars - a.stars);
+            return previousState.concat(res as IRepository[]);
           });
-          setLoading(false);
           setLoadingItems(false);
         });
       },
@@ -54,7 +53,9 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    repositoriesCallback();
+    repositoriesCallback().then(() => {
+      setLoading(false);
+    });
     const localStorageRepositories = getLocalStorage('repositories');
     if (!localStorageRepositories) {
       setLocalStorage('repositories', []);
@@ -140,8 +141,8 @@ const Home: React.FC = () => {
                       return;
                     }
                     if (e.currentTarget.scrollTop === 0) {
-                      setPageAtom(0);
-                      repositoriesCallback();
+                      setPageAtom(2);
+                      setRepositories(repositories.slice(0, 5));
                     }
                   }
                 }}
@@ -210,16 +211,21 @@ const Home: React.FC = () => {
               </Stack>
               <Stack>
                 <Checkbox
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     if (e.target.checked) {
+                      setLoading(true);
+
                       setRepositories((previousState) =>
                         previousState.filter((item) => item.starred !== false)
                       );
+                      setLoading(false);
+
                       return;
                     }
                     setLoading(true);
-
-                    repositoriesCallback();
+                    await repositoriesCallback().then(() => {
+                      setLoading(false);
+                    });
                   }}>
                   filter by Starred
                 </Checkbox>
