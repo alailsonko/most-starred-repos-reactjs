@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Badge, Box, Button, Center, Flex, Heading, VStack, Stack, Text } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import { HomeContainer, HomeWrapper } from './styles';
 
 const Home: React.FC = () => {
+  const [isTruncated, setIsTruncated] = useState(true);
   return (
     <HomeContainer>
       <HomeWrapper>
@@ -76,10 +77,39 @@ const Home: React.FC = () => {
                   </Button>
                 </Flex>
                 <Flex direction="row">
-                  <Text fontSize="small" mt={2} color="black">
+                  <Text
+                    width={isTruncated ? '85%' : '100%'}
+                    fontSize="small"
+                    mt={2}
+                    color="black"
+                    isTruncated={isTruncated}>
                     You deserve good things. With a whooping 10-15% interest rate per annum, grow
-                    your savings on your own terms with our completely automated process
+                    your savings on your own terms with our completely automated process. You
+                    deserve good things. With a whooping 10-15% interest rate per annum, grow your
+                    savings on your own terms with our completely automated process. You deserve
+                    good things. With a whooping 10-15% interest rate per annum, grow your savings
+                    on your own terms with our completely automated process.
+                    {!isTruncated && (
+                      <Text
+                        onClick={() => setIsTruncated(!isTruncated)}
+                        cursor="pointer"
+                        fontSize="small"
+                        mt={2}
+                        color="blue">
+                        Hide.
+                      </Text>
+                    )}
                   </Text>
+                  {isTruncated && (
+                    <Text
+                      onClick={() => setIsTruncated(!isTruncated)}
+                      cursor="pointer"
+                      fontSize="small"
+                      mt={2}
+                      color="blue">
+                      see more.
+                    </Text>
+                  )}
                 </Flex>
                 <Flex direction="row" align="center" justify="space-between" mt={2}>
                   <Badge colorScheme="green">python</Badge>
