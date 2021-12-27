@@ -57,13 +57,17 @@ const Home: React.FC = () => {
     if (!localStorageRepositories) {
       setLocalStorage('repositories', []);
     } else {
-      setStarredRepositories(localStorageRepositories);
+      setStarredRepositories(
+        (localStorageRepositories as IRepository[]).sort((a, b) => b.stars - a.stars)
+      );
     }
   }, []);
 
   const handleStarRepo = (item: IRepository) => {
     const localStorageRepositories = getLocalStorage('repositories');
-    const newRepositories = localStorageRepositories.concat(item);
+    const newRepositories = (localStorageRepositories as IRepository[])
+      .concat(item)
+      .sort((a, b) => b.stars - a.stars);
     setLocalStorage('repositories', newRepositories);
     setStarredRepositories((previousState) =>
       previousState.concat(item).sort((a, b) => b.stars - a.stars)
