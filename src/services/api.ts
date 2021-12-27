@@ -13,9 +13,11 @@ export default async function fetchAPI({ params = {}, url = '', method = 'GET' }
     Accept: 'application/json'
   };
   if (Object.keys(params).length > 0) {
-    url = `${url}${Object.keys(params)
-      .map((key) => `${key}${params[key]}`)
-      .join('&')}`;
+    url = encodeURI(
+      `${url}${Object.keys(params)
+        .map((key) => `${key}${params[key]}`)
+        .join('&')}`
+    );
   }
   return fetch(url, {
     method,
