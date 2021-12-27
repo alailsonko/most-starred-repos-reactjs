@@ -29,6 +29,7 @@ const Home: React.FC = () => {
   const [starredRepositories, setStarredRepositories] = useState<IRepository[]>([]);
   const [pageValueAtom, setPageAtom] = useRecoilState(pageAtom);
   const [tabIndex, setTabIndex] = useState(0);
+  const [loadData, setLoadData] = useState(false);
 
   const repositoriesCallback = useRecoilCallback(
     ({ snapshot }) =>
@@ -62,7 +63,14 @@ const Home: React.FC = () => {
       );
     }
   }, []);
-
+  const updateRepositories = () => {
+    setRepositories((previousState) =>
+      previousState.map((itemRepo) => ({
+        ...itemRepo,
+        starred: starredRepositories.some((repo) => repo.id === itemRepo.id)
+      }))
+    );
+  };
   const handleStarRepo = (item: IRepository) => {
     const localStorageRepositories = getLocalStorage('repositories');
     const newRepositories = (localStorageRepositories as IRepository[])
@@ -72,7 +80,39 @@ const Home: React.FC = () => {
     setStarredRepositories((previousState) =>
       previousState.concat(item).sort((a, b) => b.stars - a.stars)
     );
+    updateRepositories();
+
+    setLoadData(true);
   };
+
+  const handleUnstarRepo = (item: IRepository) => {
+    const localStorageRepositories = getLocalStorage('repositories');
+    const newRepositories = (localStorageRepositories as IRepository[])
+      .filter((repo) => repo.id !== item.id)
+      .sort((a, b) => b.stars - a.stars);
+    setLocalStorage('repositories', newRepositories);
+    setStarredRepositories((previousState) =>
+      previousState.filter((repo) => repo.id !== item.id).sort((a, b) => b.stars - a.stars)
+    );
+    updateRepositories();
+    setLoadData(true);
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    if (loadData) {
+      setLoadData(false);
+      setRepositories((previousState) =>
+        previousState.map((item) => ({
+          ...item,
+          starred: (getLocalStorage('repositories') as IRepository[]).some(
+            (repo) => repo.id === item.id
+          )
+        }))
+      );
+    }
+    setLoading(false);
+  }, [starredRepositories, loadData]);
 
   return (
     <HomeContainer>
@@ -126,7 +166,12 @@ const Home: React.FC = () => {
                     {!loading ? (
                       <>
                         {(repositories as unknown as IRepository[]).map((item: IRepository) => (
-                          <RepositoryCard callback={handleStarRepo} key={item.id} item={item} />
+                          <RepositoryCard
+                            callbackHandleUnstarRepo={handleUnstarRepo}
+                            callbackHandleStarRepo={handleStarRepo}
+                            key={item.id}
+                            item={item}
+                          />
                         ))}
                         {loadingItems && <Button>loading more items</Button>}
                       </>
@@ -142,7 +187,13 @@ const Home: React.FC = () => {
                       <>
                         {(starredRepositories as unknown as IRepository[]).map(
                           (item: IRepository) => (
-                            <RepositoryCard callback={handleStarRepo} key={item.id} item={item} />
+                            <RepositoryCard
+                              isStarredRepo
+                              callbackHandleUnstarRepo={handleUnstarRepo}
+                              callbackHandleStarRepo={handleStarRepo}
+                              key={item.id}
+                              item={item}
+                            />
                           )
                         )}
                         {loadingItems && <Button>loading more items</Button>}
