@@ -1,6 +1,5 @@
-# Getting Started with Create React App
+# [Link of deployed application](https://serene-swirles-f03f1f.netlify.app/).
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 
