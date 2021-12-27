@@ -9,7 +9,12 @@ import {
   Box,
   SkeletonCircle,
   SkeletonText,
-  Button
+  Button,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel
 } from '@chakra-ui/react';
 import { HomeContainer, HomeWrapper } from './styles';
 import { getRepositories, pageAtom } from '../../usecases/getRepositories';
@@ -21,7 +26,9 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingItems, setLoadingItems] = useState<boolean>(false);
   const [repositories, setRepositories] = useState<IRepository[]>([]);
+  const [starredRepositories, setStarredRepositories] = useState<IRepository[]>([]);
   const [pageValueAtom, setPageAtom] = useRecoilState(pageAtom);
+  const [tabIndex, setTabIndex] = useState(0);
 
   const repositoriesCallback = useRecoilCallback(
     ({ snapshot }) =>
@@ -49,6 +56,8 @@ const Home: React.FC = () => {
     const localStorageRepositories = getLocalStorage('repositories');
     if (!localStorageRepositories) {
       setLocalStorage('repositories', []);
+    } else {
+      setStarredRepositories(localStorageRepositories);
     }
   }, []);
 
@@ -56,6 +65,9 @@ const Home: React.FC = () => {
     const localStorageRepositories = getLocalStorage('repositories');
     const newRepositories = localStorageRepositories.concat(item);
     setLocalStorage('repositories', newRepositories);
+    setStarredRepositories((previousState) =>
+      previousState.concat(item).sort((a, b) => b.stars - a.stars)
+    );
   };
 
   return (
@@ -64,54 +76,83 @@ const Home: React.FC = () => {
         <Center>
           <VStack direction="column">
             <Stack>
-              <Heading>The most starred repositories({repositories.length})</Heading>
+              <Heading>The most starred repositories</Heading>
             </Stack>
-            <Stack
-              onScroll={(e) => {
-                if (
-                  e.currentTarget.scrollTop + e.currentTarget.offsetHeight + 2 >=
-                  e.currentTarget.scrollHeight
-                ) {
-                  setPageAtom(pageValueAtom + 1);
-                  repositoriesCallback();
-                  return;
-                }
-                if (e.currentTarget.scrollTop === 0) {
-                  setPageAtom(2);
-                  setRepositories(repositories.slice(0, 5));
-                }
-              }}
-              style={{
-                overflowY: 'scroll',
-                height: '70vh'
-              }}
-              css={{
-                '&::-webkit-scrollbar': {
-                  width: '8px'
-                },
-                '&::-webkit-scrollbar-track': {
-                  width: '10px'
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: 'green',
-                  borderRadius: '24px'
-                }
-              }}
-              spacing={2}>
-              {!loading ? (
-                <>
-                  {(repositories as unknown as IRepository[]).map((item: IRepository) => (
-                    <RepositoryCard callback={handleStarRepo} key={item.id} item={item} />
-                  ))}
-                  {loadingItems && <Button>loading more items</Button>}
-                </>
-              ) : (
-                <Box padding="6" boxShadow="lg" bg="white">
-                  <SkeletonCircle size="10" />
-                  <SkeletonText mt="4" noOfLines={4} spacing="4" />
-                </Box>
-              )}
-            </Stack>
+            <Tabs onChange={(index) => setTabIndex(index)} variant="enclosed">
+              <TabList>
+                <Tab>All({repositories.length})</Tab>
+                <Tab>Starred</Tab>
+              </TabList>
+              <Stack
+                onScroll={(e) => {
+                  if (tabIndex === 0) {
+                    if (
+                      e.currentTarget.scrollTop + e.currentTarget.offsetHeight + 2 >=
+                      e.currentTarget.scrollHeight
+                    ) {
+                      setPageAtom(pageValueAtom + 1);
+                      repositoriesCallback();
+                      return;
+                    }
+                    if (e.currentTarget.scrollTop === 0) {
+                      setPageAtom(2);
+                      setRepositories(repositories.slice(0, 5));
+                    }
+                  }
+                }}
+                style={{
+                  overflowY: 'scroll',
+                  height: '70vh'
+                }}
+                css={{
+                  '&::-webkit-scrollbar': {
+                    width: '8px'
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    width: '10px'
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: 'green',
+                    borderRadius: '24px'
+                  }
+                }}
+                spacing={2}>
+                <TabPanels>
+                  <TabPanel>
+                    {!loading ? (
+                      <>
+                        {(repositories as unknown as IRepository[]).map((item: IRepository) => (
+                          <RepositoryCard callback={handleStarRepo} key={item.id} item={item} />
+                        ))}
+                        {loadingItems && <Button>loading more items</Button>}
+                      </>
+                    ) : (
+                      <Box padding="6" boxShadow="lg" bg="white">
+                        <SkeletonCircle size="10" />
+                        <SkeletonText mt="4" noOfLines={4} spacing="4" />
+                      </Box>
+                    )}
+                  </TabPanel>
+                  <TabPanel>
+                    {!loading ? (
+                      <>
+                        {(starredRepositories as unknown as IRepository[]).map(
+                          (item: IRepository) => (
+                            <RepositoryCard callback={handleStarRepo} key={item.id} item={item} />
+                          )
+                        )}
+                        {loadingItems && <Button>loading more items</Button>}
+                      </>
+                    ) : (
+                      <Box padding="6" boxShadow="lg" bg="white">
+                        <SkeletonCircle size="10" />
+                        <SkeletonText mt="4" noOfLines={4} spacing="4" />
+                      </Box>
+                    )}
+                  </TabPanel>
+                </TabPanels>
+              </Stack>
+            </Tabs>
           </VStack>
         </Center>
       </HomeWrapper>
