@@ -1,14 +1,50 @@
-import React, { useState } from 'react';
-import { useRecoilValue } from 'recoil';
-import { Badge, Box, Button, Center, Flex, Heading, VStack, Stack, Text } from '@chakra-ui/react';
-import { StarIcon } from '@chakra-ui/icons';
+/* eslint-disable no-unused-vars */
+import React, { useEffect, useState } from 'react';
+import { useRecoilCallback, useRecoilState } from 'recoil';
+import {
+  Center,
+  Heading,
+  VStack,
+  Stack,
+  Box,
+  SkeletonCircle,
+  SkeletonText,
+  Button
+} from '@chakra-ui/react';
 import { HomeContainer, HomeWrapper } from './styles';
-import { getRepositories } from '../../usecases/getRepositories';
+import { getRepositories, pageAtom } from '../../usecases/getRepositories';
+import RepositoryCard from '../../components/RepositoryCard';
+import { IRepository } from '../../domain/models/repository';
 
 const Home: React.FC = () => {
-  const [isTruncated, setIsTruncated] = useState(true);
-  const repositories = useRecoilValue(getRepositories);
-  console.log(repositories);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingItems, setLoadingItems] = useState<boolean>(false);
+  const [repositories, setRepositories] = useState<IRepository[]>([]);
+  const [pageValueAtom, setPageAtom] = useRecoilState(pageAtom);
+
+  const repositoriesCallback = useRecoilCallback(
+    ({ snapshot }) =>
+      async () => {
+        setLoadingItems(true);
+        await snapshot.getPromise(getRepositories).then((res) => {
+          setRepositories((previousState) => {
+            if ((res as IRepository[])[0]?.id === previousState[0]?.id) {
+              setPageAtom(pageValueAtom + 1);
+              return previousState;
+            }
+
+            return previousState.concat(res as IRepository[]);
+          });
+          setLoading(false);
+          setLoadingItems(false);
+        });
+      },
+    []
+  );
+  useEffect(() => {
+    setLoading(true);
+    repositoriesCallback();
+  }, []);
   return (
     <HomeContainer>
       <HomeWrapper>
@@ -18,6 +54,20 @@ const Home: React.FC = () => {
               <Heading>The most starred repositories</Heading>
             </Stack>
             <Stack
+              onScroll={(e) => {
+                if (
+                  e.currentTarget.scrollTop + e.currentTarget.offsetHeight + 2 >=
+                  e.currentTarget.scrollHeight
+                ) {
+                  setPageAtom(pageValueAtom + 1);
+                  repositoriesCallback();
+                  return;
+                }
+                if (e.currentTarget.scrollTop === 0) {
+                  setPageAtom(1);
+                  repositoriesCallback();
+                }
+              }}
               style={{
                 overflowY: 'scroll',
                 height: '70vh'
@@ -35,340 +85,19 @@ const Home: React.FC = () => {
                 }
               }}
               spacing={2}>
-              <Box
-                shadow="md"
-                _hover={{
-                  boxShadow: 'dark-lg',
-                  borderColor: 'green.500'
-                }}
-                borderWidth="1px"
-                bg="white"
-                w={['90vw', '430px']}
-                p={2}
-                color="gray.300">
-                <Flex align="center" justify="space-between" direction="row">
-                  <Text fontSize="small" color="black">
-                    owner: fluhunt
-                  </Text>
-                  <Heading fontSize="xl" color="black">
-                    Plan Money
-                  </Heading>
-                  <Button position="relative" colorScheme="teal" variant="outline" size="lg">
-                    <span>star</span>
-                    <div>
-                      <StarIcon
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        style={{
-                          bottom: '0.1em',
-                          left: '0.7em'
-                        }}
-                      />
-                      <Text
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        fontSize="small"
-                        style={{
-                          bottom: '0.2em',
-                          left: '2.2em'
-                        }}>
-                        37821
-                      </Text>
-                    </div>
-                  </Button>
-                </Flex>
-                <Flex direction="row">
-                  <Text
-                    width={isTruncated ? '85%' : '100%'}
-                    fontSize="small"
-                    mt={2}
-                    color="black"
-                    isTruncated={isTruncated}>
-                    You deserve good things. With a whooping 10-15% interest rate per annum, grow
-                    your savings on your own terms with our completely automated process. You
-                    deserve good things. With a whooping 10-15% interest rate per annum, grow your
-                    savings on your own terms with our completely automated process. You deserve
-                    good things. With a whooping 10-15% interest rate per annum, grow your savings
-                    on your own terms with our completely automated process.
-                    {!isTruncated && (
-                      <Text
-                        onClick={() => setIsTruncated(!isTruncated)}
-                        cursor="pointer"
-                        fontSize="small"
-                        mt={2}
-                        color="blue">
-                        Hide.
-                      </Text>
-                    )}
-                  </Text>
-                  {isTruncated && (
-                    <Text
-                      onClick={() => setIsTruncated(!isTruncated)}
-                      cursor="pointer"
-                      fontSize="small"
-                      mt={2}
-                      color="blue">
-                      see more.
-                    </Text>
-                  )}
-                </Flex>
-                <Flex direction="row" align="center" justify="space-between" mt={2}>
-                  <Badge colorScheme="green">python</Badge>
-                  <Button colorScheme="blue">Go to</Button>
-                </Flex>
-              </Box>
-              <Box
-                shadow="md"
-                _hover={{
-                  boxShadow: 'dark-lg'
-                }}
-                borderWidth="1px"
-                bg="tomato"
-                w={['90vw', '430px']}
-                p={2}
-                color="white">
-                <Flex align="center" justify="space-between" direction="row">
-                  <Text fontSize="small">owner: fluhunt</Text>
-                  <Heading fontSize="xl">Plan Money</Heading>
-                  <Button position="relative" colorScheme="teal" variant="outline" size="lg">
-                    <span>star</span>
-                    <div>
-                      <StarIcon
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        style={{
-                          bottom: '0.1em',
-                          left: '0.7em'
-                        }}
-                      />
-                      <Text
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        fontSize="small"
-                        style={{
-                          bottom: '0.2em',
-                          left: '2.2em'
-                        }}>
-                        37821
-                      </Text>
-                    </div>
-                  </Button>
-                </Flex>
-                <Flex direction="row">
-                  <Text fontSize="small" mt={2}>
-                    You deserve good things. With a whooping 10-15% interest rate per annum, grow
-                    your savings on your own terms with our completely automated process
-                  </Text>
-                </Flex>
-                <Flex direction="row" align="center" justify="space-between" mt={2}>
-                  <Badge colorScheme="green">python</Badge>
-                  <Button colorScheme="teal">Go to</Button>
-                </Flex>
-              </Box>
-              <Box
-                shadow="md"
-                _hover={{
-                  boxShadow: 'dark-lg'
-                }}
-                borderWidth="1px"
-                bg="tomato"
-                w={['90vw', '430px']}
-                p={2}
-                color="white">
-                <Flex align="center" justify="space-between" direction="row">
-                  <Text fontSize="small">owner: fluhunt</Text>
-                  <Heading fontSize="xl">Plan Money</Heading>
-                  <Button position="relative" colorScheme="teal" variant="outline" size="lg">
-                    <span>star</span>
-                    <div>
-                      <StarIcon
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        style={{
-                          bottom: '0.1em',
-                          left: '0.7em'
-                        }}
-                      />
-                      <Text
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        fontSize="small"
-                        style={{
-                          bottom: '0.2em',
-                          left: '2.2em'
-                        }}>
-                        37821
-                      </Text>
-                    </div>
-                  </Button>
-                </Flex>
-                <Flex direction="row">
-                  <Text fontSize="small" mt={2}>
-                    You deserve good things. With a whooping 10-15% interest rate per annum, grow
-                    your savings on your own terms with our completely automated process
-                  </Text>
-                </Flex>
-                <Flex direction="row" align="center" justify="space-between" mt={2}>
-                  <Badge colorScheme="green">python</Badge>
-                  <Button colorScheme="teal">Go to</Button>
-                </Flex>
-              </Box>
-              <Box
-                shadow="md"
-                _hover={{
-                  boxShadow: 'dark-lg'
-                }}
-                borderWidth="1px"
-                bg="tomato"
-                w={['90vw', '430px']}
-                p={2}
-                color="white">
-                <Flex align="center" justify="space-between" direction="row">
-                  <Text fontSize="small">owner: fluhunt</Text>
-                  <Heading fontSize="xl">Plan Money</Heading>
-                  <Button position="relative" colorScheme="teal" variant="outline" size="lg">
-                    <span>star</span>
-                    <div>
-                      <StarIcon
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        style={{
-                          bottom: '0.1em',
-                          left: '0.7em'
-                        }}
-                      />
-                      <Text
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        fontSize="small"
-                        style={{
-                          bottom: '0.2em',
-                          left: '2.2em'
-                        }}>
-                        37821
-                      </Text>
-                    </div>
-                  </Button>
-                </Flex>
-                <Flex direction="row">
-                  <Text fontSize="small" mt={2}>
-                    You deserve good things. With a whooping 10-15% interest rate per annum, grow
-                    your savings on your own terms with our completely automated process
-                  </Text>
-                </Flex>
-                <Flex direction="row" align="center" justify="space-between" mt={2}>
-                  <Badge colorScheme="green">python</Badge>
-                  <Button colorScheme="teal">Go to</Button>
-                </Flex>
-              </Box>
-              <Box
-                shadow="md"
-                _hover={{
-                  boxShadow: 'dark-lg'
-                }}
-                borderWidth="1px"
-                bg="tomato"
-                w={['90vw', '430px']}
-                p={2}
-                color="white">
-                <Flex align="center" justify="space-between" direction="row">
-                  <Text fontSize="small">owner: fluhunt</Text>
-                  <Heading fontSize="xl">Plan Money</Heading>
-                  <Button position="relative" colorScheme="teal" variant="outline" size="lg">
-                    <span>star</span>
-                    <div>
-                      <StarIcon
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        style={{
-                          bottom: '0.1em',
-                          left: '0.7em'
-                        }}
-                      />
-                      <Text
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        fontSize="small"
-                        style={{
-                          bottom: '0.2em',
-                          left: '2.2em'
-                        }}>
-                        37821
-                      </Text>
-                    </div>
-                  </Button>
-                </Flex>
-                <Flex direction="row">
-                  <Text fontSize="small" mt={2}>
-                    You deserve good things. With a whooping 10-15% interest rate per annum, grow
-                    your savings on your own terms with our completely automated process
-                  </Text>
-                </Flex>
-                <Flex direction="row" align="center" justify="space-between" mt={2}>
-                  <Badge colorScheme="green">python</Badge>
-                  <Button colorScheme="teal">Go to</Button>
-                </Flex>
-              </Box>
-              <Box
-                shadow="md"
-                _hover={{
-                  boxShadow: 'dark-lg'
-                }}
-                borderWidth="1px"
-                bg="tomato"
-                w={['90vw', '430px']}
-                p={2}
-                color="white">
-                <Flex align="center" justify="space-between" direction="row">
-                  <Text fontSize="small">owner: fluhunt</Text>
-                  <Heading fontSize="xl">Plan Money</Heading>
-                  <Button position="relative" colorScheme="teal" variant="outline" size="lg">
-                    <span>star</span>
-                    <div>
-                      <StarIcon
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        style={{
-                          bottom: '0.1em',
-                          left: '0.7em'
-                        }}
-                      />
-                      <Text
-                        position="absolute"
-                        w={3}
-                        h={3}
-                        fontSize="small"
-                        style={{
-                          bottom: '0.2em',
-                          left: '2.2em'
-                        }}>
-                        37821
-                      </Text>
-                    </div>
-                  </Button>
-                </Flex>
-                <Flex direction="row">
-                  <Text fontSize="small" mt={2}>
-                    You deserve good things. With a whooping 10-15% interest rate per annum, grow
-                    your savings on your own terms with our completely automated process
-                  </Text>
-                </Flex>
-                <Flex direction="row" align="center" justify="space-between" mt={2}>
-                  <Badge colorScheme="green">python</Badge>
-                  <Button colorScheme="teal">Go to</Button>
-                </Flex>
-              </Box>
+              {!loading ? (
+                <>
+                  {(repositories as unknown as IRepository[]).map((item: IRepository) => (
+                    <RepositoryCard key={item.id} item={item} />
+                  ))}
+                  {loadingItems && <Button>loading more items</Button>}
+                </>
+              ) : (
+                <Box padding="6" boxShadow="lg" bg="white">
+                  <SkeletonCircle size="10" />
+                  <SkeletonText mt="4" noOfLines={4} spacing="4" />
+                </Box>
+              )}
             </Stack>
           </VStack>
         </Center>
