@@ -64,6 +64,7 @@ const Home: React.FC = () => {
     repositoriesCallback().then(() => {
       setLoading(false);
     });
+    console.log('tabIndex changed');
     const localStorageRepositories = getLocalStorage('repositories');
     if (!localStorageRepositories) {
       setLocalStorage('repositories', []);
@@ -108,7 +109,11 @@ const Home: React.FC = () => {
             </Stack>
             <Tabs
               onChange={(index) => {
-                setPageAtom((currVal) => currVal - 1);
+                setPageAtom((currVal) => {
+                  if (currVal > 1) return currVal - 1;
+                  return currVal;
+                });
+
                 setTabIndex(index);
               }}
               variant="enclosed">
