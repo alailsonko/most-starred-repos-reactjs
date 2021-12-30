@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState, useTransition } from 'react';
 import { useRecoilCallback, useRecoilState } from 'recoil';
 import {
   Center,
@@ -29,19 +29,44 @@ const Home: React.FC = () => {
   const [starredRepositories, setStarredRepositories] = useState<IRepository[]>([]);
   const [_, setPageAtom] = useRecoilState(pageAtom);
   const [tabIndex, setTabIndex] = useState(0);
+  const [isPending, startTransition] = useTransition();
+  const [isFirstFetchPending, startFirstFetchTransition] = useTransition();
+  const firstFetchRef = useRef(false);
+
+  const concatenatedRepositoriesPage = (previousState: IRepository[], res: IRepository[]) => {
+    if (res[0]?.id === previousState[0]?.id) {
+      setPageAtom((currVal) => currVal + 1);
+      return previousState;
+    }
+    return previousState.concat(res);
+  };
 
   const repositoriesCallback = useRecoilCallback(
     ({ snapshot }) =>
       async () => {
         setLoadingItems(true);
+
         await snapshot.getPromise<IRepository[]>(getRepositories).then((res) => {
-          setRepositories((previousState) => {
-            if (res[0]?.id === previousState[0]?.id) {
-              setPageAtom((currVal) => currVal + 1);
-              return previousState;
-            }
-            return previousState.concat(res);
+          startTransition(() => {
+            setRepositories((previousState) => concatenatedRepositoriesPage(previousState, res));
           });
+
+          setLoadingItems(false);
+        });
+      },
+    []
+  );
+
+  const repositoriesFirstFetchCallback = useRecoilCallback(
+    ({ snapshot }) =>
+      async () => {
+        setLoadingItems(true);
+
+        await snapshot.getPromise<IRepository[]>(getRepositories).then((res) => {
+          startFirstFetchTransition(() => {
+            setRepositories((previousState) => concatenatedRepositoriesPage(previousState, res));
+          });
+
           setLoadingItems(false);
         });
       },
@@ -50,19 +75,24 @@ const Home: React.FC = () => {
 
   const updateRepositories = () => {
     setLoading(true);
-    setRepositories((previousState) =>
-      previousState.map((itemRepo) => ({
-        ...itemRepo,
-        starred: starredRepositories.some((repo) => repo.id === itemRepo.id)
-      }))
-    );
+    startTransition(() => {
+      setRepositories((previousState) =>
+        previousState.map((itemRepo) => ({
+          ...itemRepo,
+          starred: starredRepositories.some((repo) => repo.id === itemRepo.id)
+        }))
+      );
+    });
+
     setLoading(false);
   };
 
   useEffect(() => {
-    repositoriesCallback().then(() => {
-      setLoading(false);
-    });
+    if (!firstFetchRef.current) {
+      repositoriesFirstFetchCallback();
+      firstFetchRef.current = true;
+    }
+
     const localStorageRepositories = getLocalStorage('repositories');
     if (!localStorageRepositories) {
       setLocalStorage('repositories', []);
@@ -124,7 +154,9 @@ const Home: React.FC = () => {
                   if (tabIndex === 0) {
                     if (
                       e.currentTarget.scrollTop + e.currentTarget.offsetHeight + 1 >=
-                      e.currentTarget.scrollHeight
+                        e.currentTarget.scrollHeight &&
+                      !loadingItems &&
+                      !isPending
                     ) {
                       setPageAtom((currVal) => currVal + 1);
                       repositoriesCallback();
@@ -153,9 +185,9 @@ const Home: React.FC = () => {
                   }
                 }}
                 spacing={2}>
-                <TabPanels>
-                  <TabPanel>
-                    {!loading ? (
+                <TabPanels width="22vw">
+                  <TabPanel width="24vw">
+                    {!isFirstFetchPending ? (
                       <>
                         {(repositories as unknown as IRepository[]).map((item: IRepository) => (
                           <RepositoryCard
@@ -166,17 +198,22 @@ const Home: React.FC = () => {
                             tabIndex={tabIndex}
                           />
                         ))}
-                        {loadingItems && <Button>loading more items</Button>}
+                        {loadingItems && (
+                          <Box padding="6" width="22vw" height="22vw" boxShadow="lg" bg="white">
+                            <SkeletonCircle size="10" />
+                            <SkeletonText mt="4" noOfLines={4} spacing="4" />
+                          </Box>
+                        )}
                       </>
                     ) : (
-                      <Box padding="6" boxShadow="lg" bg="white">
+                      <Box padding="6" width="22vw" boxShadow="lg" bg="white">
                         <SkeletonCircle size="10" />
                         <SkeletonText mt="4" noOfLines={4} spacing="4" />
                       </Box>
                     )}
                   </TabPanel>
-                  <TabPanel>
-                    {!loading ? (
+                  <TabPanel width="24vw">
+                    {!isFirstFetchPending ? (
                       <>
                         {(starredRepositories as unknown as IRepository[]).map(
                           (item: IRepository) => (
@@ -192,7 +229,7 @@ const Home: React.FC = () => {
                         {starredRepositories.length === 0 && <Button width="22vw">empty</Button>}
                       </>
                     ) : (
-                      <Box padding="6" boxShadow="lg" bg="white">
+                      <Box padding="6" width="22vw" boxShadow="lg" bg="white">
                         <SkeletonCircle size="10" />
                         <SkeletonText mt="4" noOfLines={4} spacing="4" />
                       </Box>

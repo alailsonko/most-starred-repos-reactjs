@@ -1,7 +1,16 @@
 /* eslint-disable no-unused-vars */
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useTransition } from 'react';
 import { StarIcon } from '@chakra-ui/icons';
-import { Box, Flex, Heading, Button, Badge, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Heading,
+  Button,
+  Badge,
+  Text,
+  SkeletonCircle,
+  SkeletonText
+} from '@chakra-ui/react';
 import { IRepository } from '../../domain/models/repository';
 import { getLocalStorage } from '../../services/localStorage';
 
@@ -9,18 +18,17 @@ type Props = {
   item: IRepository;
   callbackHandleUnstarRepo: Function;
   callbackHandleStarRepo: Function;
-  isStarredRepo?: boolean;
   tabIndex: number;
 };
 
 const RepositoryCard: FC<Props> = ({
-  isStarredRepo,
   item,
   callbackHandleUnstarRepo,
   callbackHandleStarRepo,
   tabIndex
 }) => {
   const [isTruncated, setIsTruncated] = useState(true);
+  const [isPending, startTransition] = useTransition();
   const handleIsStarred = () => {
     const repositoriesLocalStorage = getLocalStorage('repositories');
     if ((repositoriesLocalStorage as IRepository[]).length > 0) {
@@ -30,9 +38,17 @@ const RepositoryCard: FC<Props> = ({
   };
   const [isStarred, setIsStarred] = useState(handleIsStarred());
   useEffect(() => {
-    setIsStarred(handleIsStarred());
+    startTransition(() => {
+      setIsStarred(handleIsStarred());
+    });
   }, [tabIndex]);
-  return (
+  console.log(item.owner === 'cisagov' && isPending ? item.starred : null);
+  return isPending ? (
+    <Box padding="6" width="22vw" boxShadow="lg" bg="white">
+      <SkeletonCircle size="10" />
+      <SkeletonText mt="4" noOfLines={4} spacing="4" />
+    </Box>
+  ) : (
     <Box
       shadow="md"
       _hover={{
@@ -55,12 +71,14 @@ const RepositoryCard: FC<Props> = ({
           onClick={() => {
             if (isStarred) {
               callbackHandleUnstarRepo(item);
-              setIsStarred(handleIsStarred());
-              setIsStarred(false);
+              startTransition(() => {
+                setIsStarred(handleIsStarred());
+              });
             } else {
               callbackHandleStarRepo(item);
-              setIsStarred(handleIsStarred());
-              setIsStarred(true);
+              startTransition(() => {
+                setIsStarred(handleIsStarred());
+              });
             }
           }}
           position="relative"
@@ -131,10 +149,6 @@ const RepositoryCard: FC<Props> = ({
       </Flex>
     </Box>
   );
-};
-
-RepositoryCard.defaultProps = {
-  isStarredRepo: false
 };
 
 export default RepositoryCard;
