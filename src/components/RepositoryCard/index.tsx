@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { FC, useEffect, useState } from 'react';
 import { StarIcon } from '@chakra-ui/icons';
 import { Box, Flex, Heading, Button, Badge, Text } from '@chakra-ui/react';
@@ -26,9 +27,6 @@ const RepositoryCard: FC<Props> = ({
     return false;
   };
   const [isStarred, setIsStarred] = useState(handleIsStarred());
-  useEffect(() => {
-    setIsStarred(handleIsStarred());
-  }, []);
 
   return (
     <Box
@@ -53,9 +51,11 @@ const RepositoryCard: FC<Props> = ({
           onClick={() => {
             if (isStarred) {
               callbackHandleUnstarRepo(item);
+              setIsStarred(handleIsStarred());
               setIsStarred(false);
             } else {
               callbackHandleStarRepo(item);
+              setIsStarred(handleIsStarred());
               setIsStarred(true);
             }
           }}
@@ -63,11 +63,7 @@ const RepositoryCard: FC<Props> = ({
           colorScheme="teal"
           variant="outline"
           size="lg">
-          {isStarredRepo ? (
-            <span>{isStarred ? 'unfav' : 'fav'}</span>
-          ) : (
-            <span>{item.starred ? 'unfav' : 'fav'}</span>
-          )}
+          <span>{isStarred ? 'unfav' : 'fav'}</span>
 
           <div>
             <StarIcon

@@ -27,7 +27,7 @@ const Home: React.FC = () => {
   const [loadingItems, setLoadingItems] = useState<boolean>(false);
   const [repositories, setRepositories] = useState<IRepository[]>([]);
   const [starredRepositories, setStarredRepositories] = useState<IRepository[]>([]);
-  const [pageValueAtom, setPageAtom] = useRecoilState(pageAtom);
+  const [_, setPageAtom] = useRecoilState(pageAtom);
   const [tabIndex, setTabIndex] = useState(0);
   const [loadData, setLoadData] = useState(false);
 
@@ -38,7 +38,7 @@ const Home: React.FC = () => {
         await snapshot.getPromise<IRepository[]>(getRepositories).then((res) => {
           setRepositories((previousState) => {
             if (res[0]?.id === previousState[0]?.id) {
-              setPageAtom(pageValueAtom + 1);
+              setPageAtom((currVal) => currVal + 1);
               return previousState;
             }
 
@@ -50,21 +50,18 @@ const Home: React.FC = () => {
     []
   );
 
-  useEffect(() => {
+  const updateRepositories = () => {
     setLoading(true);
-    if (loadData) {
-      setLoadData(false);
-      setRepositories((previousState) =>
-        previousState.map((item) => ({
-          ...item,
-          starred: (getLocalStorage('repositories') as IRepository[]).some(
-            (repo) => repo.id === item.id
-          )
-        }))
-      );
-      setLoading(false);
-      return;
-    }
+    setRepositories((previousState) =>
+      previousState.map((itemRepo) => ({
+        ...itemRepo,
+        starred: starredRepositories.some((repo) => repo.id === itemRepo.id)
+      }))
+    );
+    setLoading(false);
+  };
+
+  useEffect(() => {
     repositoriesCallback().then(() => {
       setLoading(false);
     });
@@ -76,16 +73,8 @@ const Home: React.FC = () => {
         (localStorageRepositories as IRepository[]).sort((a, b) => b.stars - a.stars)
       );
     }
-  }, [loadData]);
+  }, [tabIndex]);
 
-  const updateRepositories = () => {
-    setRepositories((previousState) =>
-      previousState.map((itemRepo) => ({
-        ...itemRepo,
-        starred: starredRepositories.some((repo) => repo.id === itemRepo.id)
-      }))
-    );
-  };
   const handleStarRepo = (item: IRepository) => {
     const localStorageRepositories = getLocalStorage('repositories');
     const newRepositories = (localStorageRepositories as IRepository[])
@@ -130,12 +119,12 @@ const Home: React.FC = () => {
                       e.currentTarget.scrollTop + e.currentTarget.offsetHeight + 1 >=
                       e.currentTarget.scrollHeight
                     ) {
-                      setPageAtom(pageValueAtom + 1);
+                      setPageAtom((currVal) => currVal + 1);
                       repositoriesCallback();
                       return;
                     }
                     if (e.currentTarget.scrollTop === 0) {
-                      setPageAtom(2);
+                      setPageAtom(0);
                       setRepositories(repositories.slice(0, 5));
                     }
                   }
@@ -184,7 +173,6 @@ const Home: React.FC = () => {
                         {(starredRepositories as unknown as IRepository[]).map(
                           (item: IRepository) => (
                             <RepositoryCard
-                              isStarredRepo
                               callbackHandleUnstarRepo={handleUnstarRepo}
                               callbackHandleStarRepo={handleStarRepo}
                               key={item.id}
