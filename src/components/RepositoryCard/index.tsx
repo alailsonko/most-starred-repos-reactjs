@@ -69,9 +69,9 @@ const RepositoryCard: FC<Props> = ({
           variant="outline"
           size="lg">
           {isStarredRepo ? (
-            <span>{isStarred ? 'unstar' : 'star'}</span>
+            <span>{isStarred ? 'unfav' : 'fav'}</span>
           ) : (
-            <span>{item.starred ? 'unstar' : 'star'}</span>
+            <span>{item.starred ? 'unfav' : 'fav'}</span>
           )}
 
           <div>
