@@ -10,13 +10,15 @@ type Props = {
   callbackHandleUnstarRepo: Function;
   callbackHandleStarRepo: Function;
   isStarredRepo?: boolean;
+  tabIndex: number;
 };
 
 const RepositoryCard: FC<Props> = ({
   isStarredRepo,
   item,
   callbackHandleUnstarRepo,
-  callbackHandleStarRepo
+  callbackHandleStarRepo,
+  tabIndex
 }) => {
   const [isTruncated, setIsTruncated] = useState(true);
   const handleIsStarred = () => {
@@ -27,7 +29,9 @@ const RepositoryCard: FC<Props> = ({
     return false;
   };
   const [isStarred, setIsStarred] = useState(handleIsStarred());
-
+  useEffect(() => {
+    setIsStarred(handleIsStarred());
+  }, [tabIndex]);
   return (
     <Box
       shadow="md"

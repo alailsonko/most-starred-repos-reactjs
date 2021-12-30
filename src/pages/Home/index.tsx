@@ -40,7 +40,6 @@ const Home: React.FC = () => {
               setPageAtom((currVal) => currVal + 1);
               return previousState;
             }
-
             return previousState.concat(res);
           });
           setLoadingItems(false);
@@ -64,7 +63,6 @@ const Home: React.FC = () => {
     repositoriesCallback().then(() => {
       setLoading(false);
     });
-    console.log('tabIndex changed');
     const localStorageRepositories = getLocalStorage('repositories');
     if (!localStorageRepositories) {
       setLocalStorage('repositories', []);
@@ -165,6 +163,7 @@ const Home: React.FC = () => {
                             callbackHandleStarRepo={handleStarRepo}
                             key={item.id}
                             item={item}
+                            tabIndex={tabIndex}
                           />
                         ))}
                         {loadingItems && <Button>loading more items</Button>}
@@ -186,6 +185,7 @@ const Home: React.FC = () => {
                               callbackHandleStarRepo={handleStarRepo}
                               key={item.id}
                               item={item}
+                              tabIndex={tabIndex}
                             />
                           )
                         )}
