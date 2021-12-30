@@ -29,7 +29,6 @@ const Home: React.FC = () => {
   const [starredRepositories, setStarredRepositories] = useState<IRepository[]>([]);
   const [_, setPageAtom] = useRecoilState(pageAtom);
   const [tabIndex, setTabIndex] = useState(0);
-  const [loadData, setLoadData] = useState(false);
 
   const repositoriesCallback = useRecoilCallback(
     ({ snapshot }) =>
@@ -107,7 +106,12 @@ const Home: React.FC = () => {
             <Stack>
               <Heading>The most starred repositories</Heading>
             </Stack>
-            <Tabs onChange={(index) => setTabIndex(index)} variant="enclosed">
+            <Tabs
+              onChange={(index) => {
+                setPageAtom((currVal) => currVal - 1);
+                setTabIndex(index);
+              }}
+              variant="enclosed">
               <TabList>
                 <Tab>All({repositories.length})</Tab>
                 <Tab>Starred({starredRepositories.length})</Tab>
