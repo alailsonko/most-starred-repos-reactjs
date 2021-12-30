@@ -35,14 +35,14 @@ const Home: React.FC = () => {
     ({ snapshot }) =>
       async () => {
         setLoadingItems(true);
-        await snapshot.getPromise(getRepositories).then((res) => {
+        await snapshot.getPromise<IRepository[]>(getRepositories).then((res) => {
           setRepositories((previousState) => {
-            if ((res as IRepository[])[0]?.id === previousState[0]?.id) {
+            if (res[0]?.id === previousState[0]?.id) {
               setPageAtom(pageValueAtom + 1);
               return previousState;
             }
 
-            return previousState.concat(res as IRepository[]);
+            return previousState.concat(res);
           });
           setLoadingItems(false);
         });
@@ -52,6 +52,19 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
+    if (loadData) {
+      setLoadData(false);
+      setRepositories((previousState) =>
+        previousState.map((item) => ({
+          ...item,
+          starred: (getLocalStorage('repositories') as IRepository[]).some(
+            (repo) => repo.id === item.id
+          )
+        }))
+      );
+      setLoading(false);
+      return;
+    }
     repositoriesCallback().then(() => {
       setLoading(false);
     });
@@ -63,7 +76,8 @@ const Home: React.FC = () => {
         (localStorageRepositories as IRepository[]).sort((a, b) => b.stars - a.stars)
       );
     }
-  }, []);
+  }, [loadData]);
+
   const updateRepositories = () => {
     setRepositories((previousState) =>
       previousState.map((itemRepo) => ({
@@ -98,22 +112,6 @@ const Home: React.FC = () => {
     updateRepositories();
     setLoadData(true);
   };
-
-  useEffect(() => {
-    setLoading(true);
-    if (loadData) {
-      setLoadData(false);
-      setRepositories((previousState) =>
-        previousState.map((item) => ({
-          ...item,
-          starred: (getLocalStorage('repositories') as IRepository[]).some(
-            (repo) => repo.id === item.id
-          )
-        }))
-      );
-    }
-    setLoading(false);
-  }, [starredRepositories, loadData]);
 
   return (
     <HomeContainer>

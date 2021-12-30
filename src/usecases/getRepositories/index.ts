@@ -2,6 +2,7 @@ import { atom, selector } from 'recoil';
 import fetchAPI from '../../services/api';
 import endpoints from '../../endpoints';
 import repositoryMapper from '../../mappers/repositoryMapper';
+import { IRepository } from '../../domain/models/repository';
 
 export const pageAtom = atom({
   key: 'pageAtom',
@@ -10,7 +11,7 @@ export const pageAtom = atom({
 
 export const getRepositories = selector({
   key: 'GetRepositories',
-  get: async ({ get }) => {
+  get: async ({ get }): Promise<IRepository[]> => {
     return fetchAPI({
       url: endpoints.searchRepositories,
       params: {
@@ -20,7 +21,7 @@ export const getRepositories = selector({
         per_page: '=5',
         page: `=${get(pageAtom)}`
       }
-    }).then(({ items }: { items: Array<any> }) => items.map((item) => repositoryMapper(item)));
+    }).then(({ items }: { items: IRepository[] }) => items.map((item) => repositoryMapper(item)));
   }
 });
 
