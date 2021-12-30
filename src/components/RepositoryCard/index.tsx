@@ -18,21 +18,16 @@ const RepositoryCard: FC<Props> = ({
   callbackHandleStarRepo
 }) => {
   const [isTruncated, setIsTruncated] = useState(true);
-  const [isStarred, setIsStarred] = useState(() => {
+  const handleIsStarred = () => {
     const repositoriesLocalStorage = getLocalStorage('repositories');
     if ((repositoriesLocalStorage as IRepository[]).length > 0) {
       return (repositoriesLocalStorage as IRepository[]).some((repo) => repo.id === item.id);
     }
     return false;
-  });
+  };
+  const [isStarred, setIsStarred] = useState(handleIsStarred());
   useEffect(() => {
-    setIsStarred(() => {
-      const repositoriesLocalStorage = getLocalStorage('repositories');
-      if ((repositoriesLocalStorage as IRepository[]).length > 0) {
-        return (repositoriesLocalStorage as IRepository[]).some((repo) => repo.id === item.id);
-      }
-      return false;
-    });
+    setIsStarred(handleIsStarred());
   }, []);
 
   return (

@@ -96,8 +96,6 @@ const Home: React.FC = () => {
       previousState.concat(item).sort((a, b) => b.stars - a.stars)
     );
     updateRepositories();
-
-    setLoadData(true);
   };
 
   const handleUnstarRepo = (item: IRepository) => {
@@ -110,7 +108,6 @@ const Home: React.FC = () => {
       previousState.filter((repo) => repo.id !== item.id).sort((a, b) => b.stars - a.stars)
     );
     updateRepositories();
-    setLoadData(true);
   };
 
   return (
