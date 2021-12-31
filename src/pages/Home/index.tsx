@@ -204,14 +204,12 @@ const Home: React.FC = () => {
                         ))}
                         {loadingItems && (
                           <Box padding="6" width="22vw" height="22vw" boxShadow="lg" bg="white">
-                            <SkeletonCircle size="10" />
                             <SkeletonText mt="4" noOfLines={4} spacing="4" />
                           </Box>
                         )}
                       </>
                     ) : (
                       <Box padding="6" width="22vw" boxShadow="lg" bg="white">
-                        <SkeletonCircle size="10" />
                         <SkeletonText mt="4" noOfLines={4} spacing="4" />
                       </Box>
                     )}
@@ -234,7 +232,6 @@ const Home: React.FC = () => {
                       </>
                     ) : (
                       <Box padding="6" width="22vw" boxShadow="lg" bg="white">
-                        <SkeletonCircle size="10" />
                         <SkeletonText mt="4" noOfLines={4} spacing="4" />
                       </Box>
                     )}

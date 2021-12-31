@@ -44,7 +44,6 @@ const RepositoryCard: FC<Props> = ({
   }, [tabIndex]);
   return isPending ? (
     <Box padding="6" width="22vw" boxShadow="lg" bg="white">
-      <SkeletonCircle size="10" />
       <SkeletonText mt="4" noOfLines={4} spacing="4" />
     </Box>
   ) : (
