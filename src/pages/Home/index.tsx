@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useRef, useState, useTransition } from 'react';
-import { RecoilValueReadOnly, Snapshot, useRecoilCallback, useRecoilState } from 'recoil';
+import { RecoilValueReadOnly, Snapshot, useRecoilCallback } from 'recoil';
 import {
   Center,
   Heading,
@@ -17,24 +17,34 @@ import {
   TabPanel
 } from '@chakra-ui/react';
 import { HomeContainer, HomeWrapper } from './styles';
-import { getRepositories, pageAtom } from '../../usecases/getRepositories';
+import { getRepositories, IRepositoryParams } from '../../usecases/getRepositories';
 import RepositoryCard from '../../components/RepositoryCard';
 import { IRepository } from '../../domain/models/repository';
 import { getLocalStorage, setLocalStorage } from '../../services/localStorage';
+import { useQueryRefetching } from '../../hooks/useQueryRefetching';
 
 const Home: React.FC = () => {
   const [loadingItems, setLoadingItems] = useState<boolean>(false);
   const [repositories, setRepositories] = useState<IRepository[]>([]);
   const [starredRepositories, setStarredRepositories] = useState<IRepository[]>([]);
-  const [_, setPageAtom] = useRecoilState(pageAtom);
   const [tabIndex, setTabIndex] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [isFirstFetchPending, startFirstFetchTransition] = useTransition();
   const firstFetchRef = useRef(false);
+  const { currentPage, paramsQuery, initialPage, nextPage, prevPage, setPage } =
+    useQueryRefetching<IRepositoryParams>(
+      {
+        created: `:>2021-12-20`,
+        sort: '=stars',
+        order: '=desc',
+        per_page: '=5',
+        page: `=1`
+      },
+      'page'
+    );
 
   const concatenatedRepositoriesPage = (previousState: IRepository[], res: IRepository[]) => {
     if (res[0]?.id === previousState[0]?.id) {
-      setPageAtom((currVal) => currVal + 1);
       return previousState;
     }
     return previousState.concat(res);
@@ -50,25 +60,10 @@ const Home: React.FC = () => {
 
   const repositoriesCallback = useRecoilCallback(
     ({ snapshot }) =>
-      async () => {
+      async (params: IRepositoryParams, transitionFunction: React.TransitionStartFunction) => {
         setLoadingItems(true);
-        await snapshotGetPromises<IRepository[]>(snapshot, getRepositories, (res) => {
-          startTransition(() => {
-            setRepositories((previousState) => concatenatedRepositoriesPage(previousState, res));
-          });
-        }).then(() => {
-          setLoadingItems(false);
-        });
-      },
-    []
-  );
-
-  const repositoriesFirstFetchCallback = useRecoilCallback(
-    ({ snapshot }) =>
-      async () => {
-        setLoadingItems(true);
-        await snapshotGetPromises<IRepository[]>(snapshot, getRepositories, (res) => {
-          startFirstFetchTransition(() => {
+        await snapshotGetPromises<IRepository[]>(snapshot, getRepositories(params), (res) => {
+          transitionFunction(() => {
             setRepositories((previousState) => concatenatedRepositoriesPage(previousState, res));
           });
         }).then(() => {
@@ -89,9 +84,30 @@ const Home: React.FC = () => {
     });
   };
 
+  const updateStarredRepositories = (
+    newRepositories: IRepository[] | undefined,
+    item: IRepository,
+    method: 'concat' | 'filter'
+  ) => {
+    setLocalStorage('repositories', newRepositories);
+    switch (method) {
+      case 'concat':
+        setStarredRepositories((previousState) => previousState.concat(item));
+        break;
+      case 'filter':
+        setStarredRepositories((previousState) =>
+          previousState.filter((repo) => repo.id !== item.id)
+        );
+        break;
+      default:
+        break;
+    }
+  };
+
   useEffect(() => {
     if (!firstFetchRef.current) {
-      repositoriesFirstFetchCallback();
+      nextPage();
+      repositoriesCallback(paramsQuery, startFirstFetchTransition);
       firstFetchRef.current = true;
     }
 
@@ -108,10 +124,7 @@ const Home: React.FC = () => {
     const newRepositories = localStorageRepositories
       ?.concat(item)
       .sort((a, b) => b.stars - a.stars);
-    setLocalStorage('repositories', newRepositories);
-    setStarredRepositories((previousState) =>
-      previousState.concat(item).sort((a, b) => b.stars - a.stars)
-    );
+    updateStarredRepositories(newRepositories, item, 'concat');
     updateRepositories();
   };
 
@@ -120,10 +133,7 @@ const Home: React.FC = () => {
     const newRepositories = localStorageRepositories
       ?.filter((repo) => repo.id !== item.id)
       .sort((a, b) => b.stars - a.stars);
-    setLocalStorage('repositories', newRepositories);
-    setStarredRepositories((previousState) =>
-      previousState.filter((repo) => repo.id !== item.id).sort((a, b) => b.stars - a.stars)
-    );
+    updateStarredRepositories(newRepositories, item, 'filter');
     updateRepositories();
   };
 
@@ -137,11 +147,6 @@ const Home: React.FC = () => {
             </Stack>
             <Tabs
               onChange={(index) => {
-                setPageAtom((currVal) => {
-                  if (currVal > 1) return currVal - 1;
-                  return currVal;
-                });
-
                 setTabIndex(index);
               }}
               variant="enclosed">
@@ -158,12 +163,11 @@ const Home: React.FC = () => {
                       !loadingItems &&
                       !isPending
                     ) {
-                      setPageAtom((currVal) => currVal + 1);
-                      repositoriesCallback();
+                      repositoriesCallback(nextPage(), startTransition);
                       return;
                     }
                     if (e.currentTarget.scrollTop === 0) {
-                      setPageAtom(0);
+                      setPage(2);
                       setRepositories(repositories.slice(0, 5));
                     }
                   }
