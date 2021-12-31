@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useRef, useState, useTransition } from 'react';
-import { useRecoilCallback, useRecoilState } from 'recoil';
+import { RecoilValueReadOnly, Snapshot, useRecoilCallback, useRecoilState } from 'recoil';
 import {
   Center,
   Heading,
@@ -23,7 +23,6 @@ import { IRepository } from '../../domain/models/repository';
 import { getLocalStorage, setLocalStorage } from '../../services/localStorage';
 
 const Home: React.FC = () => {
-  const [loading, setLoading] = useState<boolean>(false);
   const [loadingItems, setLoadingItems] = useState<boolean>(false);
   const [repositories, setRepositories] = useState<IRepository[]>([]);
   const [starredRepositories, setStarredRepositories] = useState<IRepository[]>([]);
@@ -41,16 +40,23 @@ const Home: React.FC = () => {
     return previousState.concat(res);
   };
 
+  const snapshotGetPromises = async <T,>(
+    snapshot: Snapshot,
+    recoilPromiseFunction: RecoilValueReadOnly<T>,
+    cb: (res: T) => void
+  ) => {
+    await snapshot.getPromise<T>(recoilPromiseFunction).then(cb);
+  };
+
   const repositoriesCallback = useRecoilCallback(
     ({ snapshot }) =>
       async () => {
         setLoadingItems(true);
-
-        await snapshot.getPromise<IRepository[]>(getRepositories).then((res) => {
+        await snapshotGetPromises<IRepository[]>(snapshot, getRepositories, (res) => {
           startTransition(() => {
             setRepositories((previousState) => concatenatedRepositoriesPage(previousState, res));
           });
-
+        }).then(() => {
           setLoadingItems(false);
         });
       },
@@ -61,12 +67,11 @@ const Home: React.FC = () => {
     ({ snapshot }) =>
       async () => {
         setLoadingItems(true);
-
-        await snapshot.getPromise<IRepository[]>(getRepositories).then((res) => {
+        await snapshotGetPromises<IRepository[]>(snapshot, getRepositories, (res) => {
           startFirstFetchTransition(() => {
             setRepositories((previousState) => concatenatedRepositoriesPage(previousState, res));
           });
-
+        }).then(() => {
           setLoadingItems(false);
         });
       },
@@ -74,7 +79,6 @@ const Home: React.FC = () => {
   );
 
   const updateRepositories = () => {
-    setLoading(true);
     startTransition(() => {
       setRepositories((previousState) =>
         previousState.map((itemRepo) => ({
@@ -83,8 +87,6 @@ const Home: React.FC = () => {
         }))
       );
     });
-
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -93,20 +95,18 @@ const Home: React.FC = () => {
       firstFetchRef.current = true;
     }
 
-    const localStorageRepositories = getLocalStorage('repositories');
+    const localStorageRepositories = getLocalStorage<IRepository[]>('repositories');
     if (!localStorageRepositories) {
       setLocalStorage('repositories', []);
     } else {
-      setStarredRepositories(
-        (localStorageRepositories as IRepository[]).sort((a, b) => b.stars - a.stars)
-      );
+      setStarredRepositories(localStorageRepositories.sort((a, b) => b.stars - a.stars));
     }
   }, [tabIndex]);
 
   const handleStarRepo = (item: IRepository) => {
-    const localStorageRepositories = getLocalStorage('repositories');
-    const newRepositories = (localStorageRepositories as IRepository[])
-      .concat(item)
+    const localStorageRepositories = getLocalStorage<IRepository[]>('repositories');
+    const newRepositories = localStorageRepositories
+      ?.concat(item)
       .sort((a, b) => b.stars - a.stars);
     setLocalStorage('repositories', newRepositories);
     setStarredRepositories((previousState) =>
@@ -116,9 +116,9 @@ const Home: React.FC = () => {
   };
 
   const handleUnstarRepo = (item: IRepository) => {
-    const localStorageRepositories = getLocalStorage('repositories');
-    const newRepositories = (localStorageRepositories as IRepository[])
-      .filter((repo) => repo.id !== item.id)
+    const localStorageRepositories = getLocalStorage<IRepository[]>('repositories');
+    const newRepositories = localStorageRepositories
+      ?.filter((repo) => repo.id !== item.id)
       .sort((a, b) => b.stars - a.stars);
     setLocalStorage('repositories', newRepositories);
     setStarredRepositories((previousState) =>

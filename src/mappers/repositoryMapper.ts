@@ -2,7 +2,7 @@ import { getLocalStorage } from '../services/localStorage';
 import { IRepository } from '../domain/models/repository';
 
 export default function repositoryMapper(item: any): IRepository {
-  const repositoriesLocalStorage = getLocalStorage('repositories');
+  const repositoriesLocalStorage = getLocalStorage<IRepository[]>('repositories');
   return {
     id: item.id as number,
     description: item.description as string,
@@ -12,10 +12,8 @@ export default function repositoryMapper(item: any): IRepository {
     owner: item.owner.login as string,
     language: item.language as string,
     starred:
-      repositoriesLocalStorage.length > 0
-        ? (repositoriesLocalStorage as IRepository[]).some(
-            (repository) => repository.id === item.id
-          )
+      repositoriesLocalStorage && repositoriesLocalStorage.length > 0
+        ? repositoriesLocalStorage.some((repository) => repository.id === item.id)
         : false
   };
 }
