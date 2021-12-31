@@ -42,7 +42,6 @@ const RepositoryCard: FC<Props> = ({
       setIsStarred(handleIsStarred());
     });
   }, [tabIndex]);
-  console.log(item.owner === 'cisagov' && isPending ? item.starred : null);
   return isPending ? (
     <Box padding="6" width="22vw" boxShadow="lg" bg="white">
       <SkeletonCircle size="10" />
