@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useRef, useState, useTransition } from 'react';
+import React, { memo, useEffect, useRef, useState, useTransition } from 'react';
 import { RecoilValueReadOnly, Snapshot, useRecoilCallback } from 'recoil';
 import {
   Center,
@@ -139,6 +139,15 @@ const Home: React.FC = () => {
     updateRepositories(startTransition);
   };
 
+  const Repository = memo(({ item }: { item: IRepository }) => (
+    <RepositoryCard
+      callbackHandleUnstarRepo={handleUnstarRepo}
+      callbackHandleStarRepo={handleStarRepo}
+      key={item.id}
+      item={item}
+    />
+  ));
+
   return (
     <HomeContainer>
       <HomeWrapper>
@@ -195,13 +204,8 @@ const Home: React.FC = () => {
                   <TabPanel width="24vw">
                     {!isFirstFetchPending && !isFetchPending ? (
                       <>
-                        {(repositories as unknown as IRepository[]).map((item: IRepository) => (
-                          <RepositoryCard
-                            callbackHandleUnstarRepo={handleUnstarRepo}
-                            callbackHandleStarRepo={handleStarRepo}
-                            key={item.id}
-                            item={item}
-                          />
+                        {(repositories as unknown as IRepository[]).map((item) => (
+                          <Repository item={item} />
                         ))}
                         {loadingItems && (
                           <Box padding="6" width="22vw" height="22vw" boxShadow="lg" bg="white">
@@ -218,16 +222,9 @@ const Home: React.FC = () => {
                   <TabPanel width="24vw">
                     {!isFirstFetchPending ? (
                       <>
-                        {(starredRepositories as unknown as IRepository[]).map(
-                          (item: IRepository) => (
-                            <RepositoryCard
-                              callbackHandleUnstarRepo={handleUnstarRepo}
-                              callbackHandleStarRepo={handleStarRepo}
-                              key={item.id}
-                              item={item}
-                            />
-                          )
-                        )}
+                        {(starredRepositories as unknown as IRepository[]).map((item) => (
+                          <Repository item={item} />
+                        ))}
                         {starredRepositories.length === 0 && <Button width="22vw">empty</Button>}
                       </>
                     ) : (
