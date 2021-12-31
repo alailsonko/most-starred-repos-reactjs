@@ -18,15 +18,9 @@ type Props = {
   item: IRepository;
   callbackHandleUnstarRepo: Function;
   callbackHandleStarRepo: Function;
-  tabIndex: number;
 };
 
-const RepositoryCard: FC<Props> = ({
-  item,
-  callbackHandleUnstarRepo,
-  callbackHandleStarRepo,
-  tabIndex
-}) => {
+const RepositoryCard: FC<Props> = ({ item, callbackHandleUnstarRepo, callbackHandleStarRepo }) => {
   const [isTruncated, setIsTruncated] = useState(true);
   const [isPending, startTransition] = useTransition();
   const handleIsStarred = () => {
@@ -37,11 +31,7 @@ const RepositoryCard: FC<Props> = ({
     return false;
   };
   const [isStarred, setIsStarred] = useState(handleIsStarred());
-  useEffect(() => {
-    startTransition(() => {
-      setIsStarred(handleIsStarred());
-    });
-  }, [tabIndex]);
+
   return isPending ? (
     <Box padding="6" width="22vw" boxShadow="lg" bg="white">
       <SkeletonText mt="4" noOfLines={4} spacing="4" />

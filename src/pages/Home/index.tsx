@@ -30,6 +30,7 @@ const Home: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [isFirstFetchPending, startFirstFetchTransition] = useTransition();
+  const [isFetchPending, startFetchTransition] = useTransition();
   const firstFetchRef = useRef(false);
   const { currentPage, paramsQuery, initialPage, nextPage, prevPage, setPage } =
     useQueryRefetching<IRepositoryParams>(
@@ -73,8 +74,8 @@ const Home: React.FC = () => {
     []
   );
 
-  const updateRepositories = () => {
-    startTransition(() => {
+  const updateRepositories = (transitionFunction: React.TransitionStartFunction) => {
+    transitionFunction(() => {
       setRepositories((previousState) =>
         previousState.map((itemRepo) => ({
           ...itemRepo,
@@ -117,6 +118,7 @@ const Home: React.FC = () => {
     } else {
       setStarredRepositories(localStorageRepositories.sort((a, b) => b.stars - a.stars));
     }
+    updateRepositories(startFetchTransition);
   }, [tabIndex]);
 
   const handleStarRepo = (item: IRepository) => {
@@ -125,7 +127,7 @@ const Home: React.FC = () => {
       ?.concat(item)
       .sort((a, b) => b.stars - a.stars);
     updateStarredRepositories(newRepositories, item, 'concat');
-    updateRepositories();
+    updateRepositories(startTransition);
   };
 
   const handleUnstarRepo = (item: IRepository) => {
@@ -134,7 +136,7 @@ const Home: React.FC = () => {
       ?.filter((repo) => repo.id !== item.id)
       .sort((a, b) => b.stars - a.stars);
     updateStarredRepositories(newRepositories, item, 'filter');
-    updateRepositories();
+    updateRepositories(startTransition);
   };
 
   return (
@@ -191,7 +193,7 @@ const Home: React.FC = () => {
                 spacing={2}>
                 <TabPanels width="22vw">
                   <TabPanel width="24vw">
-                    {!isFirstFetchPending ? (
+                    {!isFirstFetchPending && !isFetchPending ? (
                       <>
                         {(repositories as unknown as IRepository[]).map((item: IRepository) => (
                           <RepositoryCard
@@ -199,7 +201,6 @@ const Home: React.FC = () => {
                             callbackHandleStarRepo={handleStarRepo}
                             key={item.id}
                             item={item}
-                            tabIndex={tabIndex}
                           />
                         ))}
                         {loadingItems && (
@@ -224,7 +225,6 @@ const Home: React.FC = () => {
                               callbackHandleStarRepo={handleStarRepo}
                               key={item.id}
                               item={item}
-                              tabIndex={tabIndex}
                             />
                           )
                         )}
